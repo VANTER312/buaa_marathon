@@ -260,10 +260,74 @@ const boardData = {
 
 const board = document.querySelector("#board");
 const tabButtons = [...document.querySelectorAll(".tab-button")];
+const PROJECT_DISTANCES_KM = {
+  "全程马拉松": 42.195,
+  "半程马拉松": 21.0975,
+  "高百总决赛16km": 16,
+  "10000m": 10,
+  "5000m": 5,
+  "高百分站赛4000m": 4,
+  "3000m": 3,
+  "1500m": 1.5,
+  "1000m": 1,
+  "800m": 0.8,
+  "330kmDist+25kmClimb": 330
+};
 
 function formatDate(dateString) {
   const [year, month, day] = dateString.split("-");
   return `${year}.${month}.${day}`;
+}
+
+function parseMarkToSeconds(mark) {
+  let remaining = mark.trim();
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+  let centiseconds = 0;
+
+  if (remaining.includes(":")) {
+    const [hourPart, rest] = remaining.split(":");
+    hours = Number(hourPart) || 0;
+    remaining = rest ?? "";
+  }
+
+  const minuteMatch = remaining.match(/^(\d+)'/);
+  if (minuteMatch) {
+    minutes = Number(minuteMatch[1]) || 0;
+    remaining = remaining.slice(minuteMatch[0].length);
+  }
+
+  const secondMatch = remaining.match(/^(\d+)(?:''|')/);
+  if (secondMatch) {
+    seconds = Number(secondMatch[1]) || 0;
+    remaining = remaining.slice(secondMatch[0].length);
+  }
+
+  const fractionMatch = remaining.match(/^(\d{1,2})$/);
+  if (fractionMatch) {
+    centiseconds = Number(fractionMatch[1]) || 0;
+  }
+
+  return hours * 3600 + minutes * 60 + seconds + centiseconds / 100;
+}
+
+function formatPace(record) {
+  const distanceKm = PROJECT_DISTANCES_KM[record.project];
+  if (!distanceKm) {
+    return "";
+  }
+
+  const totalSeconds = parseMarkToSeconds(record.mark);
+  if (!totalSeconds) {
+    return "";
+  }
+
+  const paceSeconds = Math.round(totalSeconds / distanceKm);
+  const paceMinutesPart = Math.floor(paceSeconds / 60);
+  const paceSecondsPart = paceSeconds % 60;
+
+  return `配速 ${paceMinutesPart}'${String(paceSecondsPart).padStart(2, "0")}''/km`;
 }
 
 function buildSummary(records) {
@@ -278,16 +342,16 @@ function buildSummary(records) {
 }
 
 function renderCard(record) {
-  const reviewTag = record.review ? '<span class="review-badge">图片字段待校对</span>' : "";
   const cardClass = record.gender === "女" ? "record-card is-female" : "record-card is-male";
+  const paceMarkup = formatPace(record) ? `<div class="record-pace">${formatPace(record)}</div>` : "";
 
   return `
     <article class="${cardClass}">
       <div class="record-top">
         <span class="project-badge">${record.project}</span>
-        ${reviewTag}
       </div>
       <div class="record-mark">${record.mark}</div>
+      ${paceMarkup}
       <h4 class="record-name">${record.athlete}</h4>
       <p class="record-dept">${record.gender} · ${record.department}</p>
       <dl class="record-meta">
