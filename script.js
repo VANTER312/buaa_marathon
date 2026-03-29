@@ -596,10 +596,13 @@ function openHistoryModal(record, trigger) {
   const entries = getHistoryEntries(record);
   const firstEntry = entries[0];
   const latestEntry = entries[entries.length - 1];
+  const isFemale = record.gender === "女";
 
   lastHistoryTrigger = trigger ?? null;
+  historyModal.classList.toggle("is-female", isFemale);
+  historyModal.classList.toggle("is-male", !isFemale);
   historyModalTitle.textContent = `${record.project}纪录变迁`;
-  historyModalSubtitle.textContent = `${record.gender === "女" ? "女子" : "男子"} · 从最早已录入节点到当前校纪录`;
+  historyModalSubtitle.textContent = `${isFemale ? "女子" : "男子"} · 从最早已录入节点到当前校纪录`;
   historyModalSummary.innerHTML = [
     `当前纪录 ${record.athlete} · ${record.mark}`,
     `${entries.length} 个历史节点`,
@@ -627,6 +630,7 @@ function openHistoryModal(record, trigger) {
 
 function closeHistoryModal() {
   historyModal.classList.remove("is-open");
+  historyModal.classList.remove("is-female", "is-male");
   historyModal.setAttribute("aria-hidden", "true");
   document.body.classList.remove("is-modal-open");
 

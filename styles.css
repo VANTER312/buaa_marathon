@@ -900,6 +900,58 @@ button {
   white-space: nowrap;
 }
 
+.history-modal.is-female .history-modal__close {
+  color: #8b5778;
+}
+
+.history-modal.is-female .history-modal__summary span {
+  background: rgba(251, 239, 245, 0.72);
+  border-color: rgba(246, 220, 233, 0.88);
+  color: #8b5778;
+}
+
+.history-modal.is-female .history-flow-shell,
+.history-modal.is-female .history-empty,
+.history-modal.is-female .history-log-card {
+  background: rgba(255, 248, 251, 0.78);
+  border-color: rgba(246, 220, 233, 0.9);
+}
+
+.history-modal.is-female .history-node {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), var(--female-surface) 100%);
+  border-color: rgba(238, 205, 220, 0.82);
+}
+
+.history-modal.is-female .history-node__step {
+  background: var(--female-accent-soft);
+  color: var(--female-accent-text);
+}
+
+.history-modal.is-female .history-node__note,
+.history-modal.is-female .history-log-card__note,
+.history-modal.is-female .history-link__delta {
+  background: rgba(201, 108, 151, 0.14);
+  color: #8b5778;
+}
+
+.history-modal.is-female .history-node__mark,
+.history-modal.is-female .history-log-card__mark {
+  color: #7b3d63;
+}
+
+.history-modal.is-female .history-node__date {
+  color: #8d5a79;
+}
+
+.history-modal.is-female .history-link__arrow {
+  background: linear-gradient(90deg, rgba(223, 161, 187, 0.42), rgba(201, 108, 151, 0.86));
+}
+
+.history-modal.is-female .history-link__arrow::after {
+  border-top-color: #b85d8a;
+  border-right-color: #b85d8a;
+}
+
 .notes-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
