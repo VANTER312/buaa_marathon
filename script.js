@@ -279,7 +279,7 @@ const recordHistorySeed = {
     {
       athlete: "朱风云",
       mark: "2:52'14''",
-      competition: "德州马拉松",
+      competition: "儋州马拉松",
       date: "2011-12-17"
     },
     {
