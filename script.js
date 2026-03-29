@@ -80,7 +80,7 @@ const categoryData = {
   },
   women: {
     title: "女子中长跑",
-    description: "覆盖全马、半马和中距离场地项目，页面按荣誉卡片呈现，不让信息密度压过成绩本身。",
+    description: "覆盖全马、半马和中距离场地项目，页面按荣誉卡片呈现。",
     records: [
       {
         athlete: "李晓",
@@ -150,10 +150,10 @@ const categoryData = {
   },
   gaobai: {
     title: "高百专项",
-    description: "保留高百总决赛与分站赛的独立分组，和常规场地、公路项目切开，层次更清楚。",
+    description: "保留高百总决赛与分站赛的独立分组，和常规场地、公路项目分开。",
     records: [
       {
-        athlete: "刘宇斌",
+        athlete: "刘守斌",
         gender: "男",
         department: "5系19级博",
         project: "高百总决赛16km",
@@ -252,7 +252,7 @@ const allRecords = [...standardRecords, ...specialRecords];
 const boardData = {
   all: {
     title: "全部纪录",
-    description: "主项按距离由长到短排列，从全马一路看到 800m；巨人之旅单独列出，阅读顺序更清楚。",
+    description: "主项按距离由长到短排列，从全马一路看到 800m；巨人之旅单独列出。",
     records: allRecords
   },
   ...categoryData
@@ -260,74 +260,10 @@ const boardData = {
 
 const board = document.querySelector("#board");
 const tabButtons = [...document.querySelectorAll(".tab-button")];
-const PROJECT_DISTANCES_KM = {
-  "全程马拉松": 42.195,
-  "半程马拉松": 21.0975,
-  "高百总决赛16km": 16,
-  "10000m": 10,
-  "5000m": 5,
-  "高百分站赛4000m": 4,
-  "3000m": 3,
-  "1500m": 1.5,
-  "1000m": 1,
-  "800m": 0.8,
-  "330kmDist+25kmClimb": 330
-};
 
 function formatDate(dateString) {
   const [year, month, day] = dateString.split("-");
   return `${year}.${month}.${day}`;
-}
-
-function parseMarkToSeconds(mark) {
-  let remaining = mark.trim();
-  let hours = 0;
-  let minutes = 0;
-  let seconds = 0;
-  let centiseconds = 0;
-
-  if (remaining.includes(":")) {
-    const [hourPart, rest] = remaining.split(":");
-    hours = Number(hourPart) || 0;
-    remaining = rest ?? "";
-  }
-
-  const minuteMatch = remaining.match(/^(\d+)'/);
-  if (minuteMatch) {
-    minutes = Number(minuteMatch[1]) || 0;
-    remaining = remaining.slice(minuteMatch[0].length);
-  }
-
-  const secondMatch = remaining.match(/^(\d+)(?:''|')/);
-  if (secondMatch) {
-    seconds = Number(secondMatch[1]) || 0;
-    remaining = remaining.slice(secondMatch[0].length);
-  }
-
-  const fractionMatch = remaining.match(/^(\d{1,2})$/);
-  if (fractionMatch) {
-    centiseconds = Number(fractionMatch[1]) || 0;
-  }
-
-  return hours * 3600 + minutes * 60 + seconds + centiseconds / 100;
-}
-
-function formatPace(record) {
-  const distanceKm = PROJECT_DISTANCES_KM[record.project];
-  if (!distanceKm) {
-    return "";
-  }
-
-  const totalSeconds = parseMarkToSeconds(record.mark);
-  if (!totalSeconds) {
-    return "";
-  }
-
-  const paceSeconds = Math.round(totalSeconds / distanceKm);
-  const paceMinutesPart = Math.floor(paceSeconds / 60);
-  const paceSecondsPart = paceSeconds % 60;
-
-  return `配速 ${paceMinutesPart}'${String(paceSecondsPart).padStart(2, "0")}''/km`;
 }
 
 function buildSummary(records) {
@@ -352,7 +288,6 @@ function renderCard(record) {
         ${reviewTag}
       </div>
       <div class="record-mark">${record.mark}</div>
-      ${formatPace(record) ? `<div class="record-pace">${formatPace(record)}</div>` : ""}
       <h4 class="record-name">${record.athlete}</h4>
       <p class="record-dept">${record.gender} · ${record.department}</p>
       <dl class="record-meta">
