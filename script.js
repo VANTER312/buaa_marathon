@@ -258,8 +258,113 @@ const boardData = {
   ...categoryData
 };
 
+function makeHistoryKey(project, gender) {
+  return `${project}__${gender}`;
+}
+
+const recordHistorySeed = {
+  [makeHistoryKey("全程马拉松", "男")]: [
+    {
+      athlete: "徐伟强",
+      mark: "2:58'37''",
+      competition: "北京马拉松",
+      date: "2005-10-16"
+    },
+    {
+      athlete: "朱风云",
+      mark: "2:58'08''",
+      competition: "天津马拉松",
+      date: "2006-04-16"
+    },
+    {
+      athlete: "朱风云",
+      mark: "2:52'14''",
+      competition: "德州马拉松",
+      date: "2011-12-17"
+    },
+    {
+      athlete: "朱风云",
+      mark: "2:50'43''",
+      competition: "杭州马拉松",
+      date: "2012-11-18"
+    },
+    {
+      athlete: "黄兴智",
+      mark: "2:48'45''",
+      competition: "北京马拉松",
+      date: "2013-10-20",
+      note: "首个 2:50 内"
+    },
+    {
+      athlete: "王云峰",
+      mark: "2:46'33''",
+      competition: "首尔马拉松",
+      date: "2014-03-16"
+    },
+    {
+      athlete: "刘守斌",
+      mark: "2:37'34''",
+      competition: "北京马拉松",
+      date: "2022-11-06",
+      note: "首个 2:40 内"
+    },
+    {
+      athlete: "刘守斌",
+      mark: "2:35'30''",
+      competition: "武汉马拉松",
+      date: "2023-04-16"
+    },
+    {
+      athlete: "刘守斌",
+      mark: "2:29'32''",
+      competition: "北京马拉松",
+      date: "2023-10-29",
+      note: "首个 2:30 内"
+    }
+  ],
+  [makeHistoryKey("全程马拉松", "女")]: [
+    {
+      athlete: "王贝贝",
+      mark: "4:15'21''",
+      competition: "北京马拉松",
+      date: "2005-10-16"
+    },
+    {
+      athlete: "王贝贝",
+      mark: "4:03'09''",
+      competition: "北京马拉松",
+      date: "2006-09-26"
+    },
+    {
+      athlete: "赵玉侠",
+      mark: "3:48'52''",
+      competition: "北京马拉松",
+      date: "2008-10-16",
+      note: "首个 4:00 内"
+    },
+    {
+      athlete: "梁姣姣",
+      mark: "3:43'00''",
+      competition: "厦门马拉松",
+      date: "2015-01-03"
+    },
+    {
+      athlete: "梁姣姣",
+      mark: "3:32'00''",
+      competition: "南京马拉松",
+      date: "2015-11-18"
+    }
+  ]
+};
+
 const board = document.querySelector("#board");
 const tabButtons = [...document.querySelectorAll(".tab-button")];
+const historyModal = document.querySelector("#history-modal");
+const historyModalTitle = document.querySelector("#history-modal-title");
+const historyModalSubtitle = document.querySelector("[data-history-subtitle]");
+const historyModalSummary = document.querySelector("[data-history-summary]");
+const historyModalBody = document.querySelector("[data-history-body]");
+let lastHistoryTrigger = null;
 const PROJECT_DISTANCES_KM = {
   "全程马拉松": 42.195,
   "半程马拉松": 21.0975,
@@ -330,6 +435,64 @@ function formatPace(record) {
   return `配速 ${paceMinutesPart}'${String(paceSecondsPart).padStart(2, "0")}''/km`;
 }
 
+function formatDuration(totalSeconds) {
+  const totalCentiseconds = Math.round(totalSeconds * 100);
+  const hours = Math.floor(totalCentiseconds / 360000);
+  const minutes = Math.floor((totalCentiseconds % 360000) / 6000);
+  const seconds = Math.floor((totalCentiseconds % 6000) / 100);
+  const centiseconds = totalCentiseconds % 100;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}'${String(seconds).padStart(2, "0")}''`;
+  }
+
+  const minuteChunk = `${minutes}'${String(seconds).padStart(2, "0")}''`;
+  if (centiseconds > 0) {
+    return `${minuteChunk}${String(centiseconds).padStart(2, "0")}`;
+  }
+
+  return minuteChunk;
+}
+
+function formatHistoryDelta(previousEntry, nextEntry) {
+  const deltaSeconds = parseMarkToSeconds(previousEntry.mark) - parseMarkToSeconds(nextEntry.mark);
+  if (Math.abs(deltaSeconds) < 0.005) {
+    return "持平";
+  }
+
+  return `${deltaSeconds > 0 ? "快" : "慢"} ${formatDuration(Math.abs(deltaSeconds))}`;
+}
+
+function buildHistoryEntryFromRecord(record) {
+  return {
+    athlete: record.athlete,
+    mark: record.mark,
+    competition: record.competition,
+    date: record.date,
+    note: record.note ?? ""
+  };
+}
+
+function getHistoryEntries(record) {
+  const historyKey = makeHistoryKey(record.project, record.gender);
+  const seededEntries = recordHistorySeed[historyKey] ?? [];
+  const currentEntry = buildHistoryEntryFromRecord(record);
+  const hasCurrentEntry = seededEntries.some(
+    (entry) =>
+      entry.athlete === currentEntry.athlete &&
+      entry.mark === currentEntry.mark &&
+      entry.date === currentEntry.date
+  );
+
+  return [...seededEntries, ...(hasCurrentEntry ? [] : [currentEntry])].sort((left, right) =>
+    left.date.localeCompare(right.date)
+  );
+}
+
+function findRecord(project, gender) {
+  return allRecords.find((record) => record.project === project && record.gender === gender) ?? null;
+}
+
 function buildSummary(records) {
   const distinctProjects = new Set(records.map((record) => record.project)).size;
   const latestRecord = [...records].sort((left, right) => right.date.localeCompare(left.date))[0];
@@ -343,15 +506,25 @@ function buildSummary(records) {
 
 function renderCard(record) {
   const cardClass = record.gender === "女" ? "record-card is-female" : "record-card is-male";
-  const paceMarkup = formatPace(record) ? `<div class="record-pace">${formatPace(record)}</div>` : "";
+  const paceText = formatPace(record);
 
   return `
     <article class="${cardClass}">
       <div class="record-top">
         <span class="project-badge">${record.project}</span>
+        <button
+          class="expand-history-button"
+          type="button"
+          data-history-trigger
+          data-history-project="${record.project}"
+          data-history-gender="${record.gender}"
+          aria-label="展开 ${record.project} 纪录变迁"
+        >
+          展开
+        </button>
       </div>
       <div class="record-mark">${record.mark}</div>
-      ${paceMarkup}
+      ${paceText ? `<div class="record-pace">${paceText}</div>` : ""}
       <h4 class="record-name">${record.athlete}</h4>
       <p class="record-dept">${record.gender} · ${record.department}</p>
       <dl class="record-meta">
@@ -366,6 +539,100 @@ function renderCard(record) {
       </dl>
     </article>
   `;
+}
+
+function renderHistoryTimeline(entries) {
+  return entries
+    .map((entry, index) => {
+      const nextEntry = entries[index + 1];
+      const noteMarkup = entry.note ? `<span class="history-node__note">${entry.note}</span>` : "";
+      const connectorMarkup = nextEntry
+        ? `
+            <div class="history-link" aria-hidden="true">
+              <span class="history-link__delta">${formatHistoryDelta(entry, nextEntry)}</span>
+              <span class="history-link__arrow"></span>
+            </div>
+          `
+        : "";
+
+      return `
+        <article class="history-node">
+          <span class="history-node__step">${String(index + 1).padStart(2, "0")}</span>
+          ${noteMarkup}
+          <div class="history-node__mark">${entry.mark}</div>
+          <h4 class="history-node__athlete">${entry.athlete}</h4>
+          <p class="history-node__competition">${entry.competition}</p>
+          <p class="history-node__date">${formatDate(entry.date)}</p>
+        </article>
+        ${connectorMarkup}
+      `;
+    })
+    .join("");
+}
+
+function renderHistoryLog(entries) {
+  return entries
+    .map((entry) => {
+      const noteMarkup = entry.note ? `<span class="history-log-card__note">${entry.note}</span>` : "";
+
+      return `
+        <article class="history-log-card">
+          <div class="history-log-card__top">
+            <div>
+              <div class="history-log-card__mark">${entry.mark}</div>
+              <h4 class="history-log-card__athlete">${entry.athlete}</h4>
+            </div>
+            ${noteMarkup}
+          </div>
+          <p class="history-log-card__competition">${entry.competition}</p>
+          <p class="history-log-card__date">${formatDate(entry.date)}</p>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function openHistoryModal(record, trigger) {
+  const entries = getHistoryEntries(record);
+  const firstEntry = entries[0];
+  const latestEntry = entries[entries.length - 1];
+
+  lastHistoryTrigger = trigger ?? null;
+  historyModalTitle.textContent = `${record.project}纪录变迁`;
+  historyModalSubtitle.textContent = `${record.gender === "女" ? "女子" : "男子"} · 从最早已录入节点到当前校纪录`;
+  historyModalSummary.innerHTML = [
+    `当前纪录 ${record.athlete} · ${record.mark}`,
+    `${entries.length} 个历史节点`,
+    `${formatDate(firstEntry.date)} - ${formatDate(latestEntry.date)}`
+  ]
+    .map((item) => `<span>${item}</span>`)
+    .join("");
+
+  historyModalBody.innerHTML = `
+    <div class="history-flow-shell">
+      <div class="history-flow">${renderHistoryTimeline(entries)}</div>
+    </div>
+    ${
+      entries.length === 1
+        ? '<p class="history-empty">当前项目暂时只录入了最新校纪录。后续继续补充历史成绩后，这里会自动串成完整的纪录变迁。</p>'
+        : ""
+    }
+    <div class="history-log">${renderHistoryLog(entries)}</div>
+  `;
+
+  historyModal.classList.add("is-open");
+  historyModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("is-modal-open");
+}
+
+function closeHistoryModal() {
+  historyModal.classList.remove("is-open");
+  historyModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("is-modal-open");
+
+  if (lastHistoryTrigger) {
+    lastHistoryTrigger.focus();
+  }
 }
 
 function renderAllView(currentGroup) {
@@ -481,6 +748,32 @@ tabButtons.forEach((button) => {
 
     renderGroup(nextGroup);
   });
+});
+
+board.addEventListener("click", (event) => {
+  const trigger = event.target.closest("[data-history-trigger]");
+  if (!trigger) {
+    return;
+  }
+
+  const record = findRecord(trigger.dataset.historyProject, trigger.dataset.historyGender);
+  if (!record) {
+    return;
+  }
+
+  openHistoryModal(record, trigger);
+});
+
+historyModal.addEventListener("click", (event) => {
+  if (event.target.closest("[data-history-close]")) {
+    closeHistoryModal();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && historyModal.classList.contains("is-open")) {
+    closeHistoryModal();
+  }
 });
 
 updateOverview();
