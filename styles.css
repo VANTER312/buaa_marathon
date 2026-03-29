@@ -723,3 +723,75 @@ button {
     transition: none !important;
   }
 }
+
+/* 点将台样式 */
+.dianjiangtai-section {
+  margin-top: 40px;
+  border-radius: var(--radius-xl);
+}
+
+.dianjiangtai-content {
+  display: grid;
+  gap: 32px;
+}
+
+.dianjiangtai-content .category,
+.dianjiangtai-section .section-head {
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  padding: 24px;
+}
+
+.category {
+  background: var(--surface-strong);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-soft);
+}
+
+.category h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  color: var(--text);
+}
+
+.dianjiangtai-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dianjiangtai-table th,
+.dianjiangtai-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.dianjiangtai-table th {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dianjiangtai-table td {
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.dianjiangtai-table tbody tr:hover {
+  background: rgba(22, 93, 190, 0.04);
+}
+
+.dianjiangtai-table th:nth-child(2),
+.dianjiangtai-table td:nth-child(2) {
+  color: #dc2626;
+}
